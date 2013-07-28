@@ -270,37 +270,37 @@ func shiftMix(val uint64) uint64 {
     return val ^ (val >> 47)
 }
 
-type uint128 [2]uint64
+type Uint128 [2]uint64
 
-func (this uint128) setLower64(l uint64) {
+func (this Uint128) setLower64(l uint64) {
     this[0] = l
 }
 
-func (this uint128) setHigher64(h uint64) {
+func (this Uint128) setHigher64(h uint64) {
     this[0] = h
 }
 
-func (this uint128) lower64() uint64 {
+func (this Uint128) Lower64() uint64 {
     return this[0]
 }
 
-func (this uint128) higher64() uint64 {
+func (this Uint128) Higher64() uint64 {
     return this[1]
 }
 
-func hash128to64(x uint128) uint64 {
+func hash128to64(x Uint128) uint64 {
     // Murmur-inspired hashing.
     const kMul uint64 = 0x9ddfea08eb382d69
-    var a uint64 = (x.lower64() ^ x.higher64()) * kMul
+    var a uint64 = (x.Lower64() ^ x.Higher64()) * kMul
     a ^= (a >> 47)
-    var b uint64 = (x.higher64() ^ a) * kMul
+    var b uint64 = (x.Higher64() ^ a) * kMul
     b ^= (b >> 47)
     b *= kMul
     return b
 }
 
 func hashLen16(u, v uint64) uint64 {
-    return hash128to64(uint128{u, v})
+    return hash128to64(Uint128{u, v})
 }
 
 func hashLen16_3(u, v, mul uint64) uint64 {
@@ -350,17 +350,17 @@ func hashLen17to32(s []byte, length uint32) uint64 {
     return hashLen16_3(rotate64(a + b, 43) + rotate64(c, 30) + d, a + rotate64(b + k2, 18) + c, mul)
 }
 
-func weakHashLen32WithSeeds(w, x, y, z, a, b uint64) uint128 {
+func weakHashLen32WithSeeds(w, x, y, z, a, b uint64) Uint128 {
     a += w
     b = rotate64(b + a + z, 21)
     var c uint64 = a
     a += x
     a += y
     b += rotate64(a, 44)
-    return uint128{a+z, b+c}
+    return Uint128{a+z, b+c}
 }
 
-func weakHashLen32WithSeeds_3(s []byte, a, b uint64) uint128 {
+func weakHashLen32WithSeeds_3(s []byte, a, b uint64) Uint128 {
     return weakHashLen32WithSeeds(fetch64(s), fetch64(s[8:]), fetch64(s[16:]), fetch64(s[24:]), a, b)
 }
 
@@ -399,20 +399,20 @@ func CityHash64(s []byte, length uint32) uint64 {
     var x uint64 = fetch64(s[length - 40:])
     var y uint64 = fetch64(s[length - 16:]) + fetch64(s[length - 56:])
     var z uint64 = hashLen16(fetch64(s[length - 48:]) + uint64(length), fetch64(s[length - 24:]))
-    var v uint128 = weakHashLen32WithSeeds_3(s[length - 64:], uint64(length), z)
-    var w uint128 = weakHashLen32WithSeeds_3(s[length - 32:], y + k1, x)
+    var v Uint128 = weakHashLen32WithSeeds_3(s[length - 64:], uint64(length), z)
+    var w Uint128 = weakHashLen32WithSeeds_3(s[length - 32:], y + k1, x)
     x = x * k1 + fetch64(s)
 
     length = (length - 1) & ^uint32(63)
     for {
-        x = rotate64(x + y + v.lower64() + fetch64(s[8:]), 37) * k1
-        y = rotate64(y + v.higher64() + fetch64(s[48:]), 42) * k1
-        x ^= w.higher64()
-        y += v.lower64() + fetch64(s[40:])
-        z = rotate64(z + w.lower64(), 33) * k1
+        x = rotate64(x + y + v.Lower64() + fetch64(s[8:]), 37) * k1
+        y = rotate64(y + v.Higher64() + fetch64(s[48:]), 42) * k1
+        x ^= w.Higher64()
+        y += v.Lower64() + fetch64(s[40:])
+        z = rotate64(z + w.Lower64(), 33) * k1
         //v = WeakHashLen32WithSeeds(s, v.second * k1, x + w.first);
-        v = weakHashLen32WithSeeds_3(s, v.higher64() * k1, x + w.lower64())
-        w = weakHashLen32WithSeeds_3(s[32:], z + w.higher64(), y + fetch64(s[16:]))
+        v = weakHashLen32WithSeeds_3(s, v.Higher64() * k1, x + w.Lower64())
+        w = weakHashLen32WithSeeds_3(s[32:], z + w.Higher64(), y + fetch64(s[16:]))
         swap64(&z, &x)
         s = s[64:]
         length -= 64
@@ -422,7 +422,7 @@ func CityHash64(s []byte, length uint32) uint64 {
         }
     }
 
-    return hashLen16(hashLen16(v.lower64(), w.lower64()) + shiftMix(y) * k1 + z, hashLen16(v.higher64(), w.higher64()) + x)
+    return hashLen16(hashLen16(v.Lower64(), w.Lower64()) + shiftMix(y) * k1 + z, hashLen16(v.Higher64(), w.Higher64()) + x)
 }
 
 func CityHash64WithSeed(s []byte, length uint32, seed uint64) uint64 {
@@ -433,9 +433,9 @@ func CityHash64WithSeeds(s []byte, length uint32, seed0, seed1 uint64) uint64 {
     return hashLen16(CityHash64(s, length) - seed0, seed1)
 }
 
-func cityMurmur(s []byte, length uint32, seed uint128) uint128 {
-    var a uint64 = seed.lower64()
-    var b uint64 = seed.higher64()
+func cityMurmur(s []byte, length uint32, seed Uint128) Uint128 {
+    var a uint64 = seed.Lower64()
+    var b uint64 = seed.Higher64()
     var c uint64 = 0
     var d uint64 = 0
     var l int32 = int32(length) - 16
@@ -472,44 +472,44 @@ func cityMurmur(s []byte, length uint32, seed uint128) uint128 {
 
     a = hashLen16(a, c)
     b = hashLen16(d, b)
-    return uint128{a ^ b, hashLen16(b, a)}
+    return Uint128{a ^ b, hashLen16(b, a)}
 }
 
-func CityHash128WithSeed(s []byte, length uint32, seed uint128) uint128 {
+func CityHash128WithSeed(s []byte, length uint32, seed Uint128) Uint128 {
     if (length < 128) {
         return cityMurmur(s, length, seed)
     }
 
     // We expect length >= 128 to be the common case.  Keep 56 bytes of state:
     // v, w, x, y, and z.
-    var v, w uint128
-    var x uint64 = seed.lower64()
-    var y uint64 = seed.higher64()
+    var v, w Uint128
+    var x uint64 = seed.Lower64()
+    var y uint64 = seed.Higher64()
     var z uint64 = uint64(length) * k1
 
     v.setLower64( rotate64(y ^ k1, 49) * k1 + fetch64(s) )
-    v.setHigher64( rotate64(v.lower64(), 42) * k1 + fetch64(s[8:]) )
+    v.setHigher64( rotate64(v.Lower64(), 42) * k1 + fetch64(s[8:]) )
     w.setLower64( rotate64(y + z, 35) * k1 + x )
     w.setHigher64( rotate64(x + fetch64(s[88:]), 53) * k1 )
 
     // This is the same inner loop as CityHash64(), manually unrolled.
     for {
-        x = rotate64(x + y + v.lower64() + fetch64(s[8:]), 37) * k1
-        y = rotate64(y + v.higher64() + fetch64(s[48:]), 42) * k1
-        x ^= w.higher64()
-        y += v.lower64() + fetch64(s[40:])
-        z = rotate64(z + w.lower64(), 33) * k1
-        v = weakHashLen32WithSeeds_3(s, v.higher64() * k1, x + w.lower64())
-        w = weakHashLen32WithSeeds_3(s[32:], z + w.higher64(), y + fetch64(s[16:]))
+        x = rotate64(x + y + v.Lower64() + fetch64(s[8:]), 37) * k1
+        y = rotate64(y + v.Higher64() + fetch64(s[48:]), 42) * k1
+        x ^= w.Higher64()
+        y += v.Lower64() + fetch64(s[40:])
+        z = rotate64(z + w.Lower64(), 33) * k1
+        v = weakHashLen32WithSeeds_3(s, v.Higher64() * k1, x + w.Lower64())
+        w = weakHashLen32WithSeeds_3(s[32:], z + w.Higher64(), y + fetch64(s[16:]))
         swap64(&z, &x)
         s = s[64:]
-        x = rotate64(x + y + v.lower64() + fetch64(s[8:]), 37) * k1
-        y = rotate64(y + v.higher64() + fetch64(s[48:]), 42) * k1
-        x ^= w.higher64()
-        y += v.lower64() + fetch64(s[40:])
-        z = rotate64(z + w.lower64(), 33) * k1
-        v = weakHashLen32WithSeeds_3(s, v.higher64() * k1, x + w.lower64())
-        w = weakHashLen32WithSeeds_3(s[32:], z + w.higher64(), y + fetch64(s[16:]))
+        x = rotate64(x + y + v.Lower64() + fetch64(s[8:]), 37) * k1
+        y = rotate64(y + v.Higher64() + fetch64(s[48:]), 42) * k1
+        x ^= w.Higher64()
+        y += v.Lower64() + fetch64(s[40:])
+        z = rotate64(z + w.Lower64(), 33) * k1
+        v = weakHashLen32WithSeeds_3(s, v.Higher64() * k1, x + w.Lower64())
+        w = weakHashLen32WithSeeds_3(s[32:], z + w.Higher64(), y + fetch64(s[16:]))
         swap64(&z, &x)
         s = s[64:]
         length -= 128
@@ -519,40 +519,40 @@ func CityHash128WithSeed(s []byte, length uint32, seed uint128) uint128 {
         }
     }
 
-    x += rotate64(v.lower64() + z, 49) * k0
-    y = y * k0 + rotate64(w.higher64(), 37)
-    z = z * k0 + rotate64(w.lower64(), 27)
-    w.setLower64( w.lower64() * 9 )
-    v.setLower64( v.lower64() * k0 )
+    x += rotate64(v.Lower64() + z, 49) * k0
+    y = y * k0 + rotate64(w.Higher64(), 37)
+    z = z * k0 + rotate64(w.Lower64(), 27)
+    w.setLower64( w.Lower64() * 9 )
+    v.setLower64( v.Lower64() * k0 )
 
     // If 0 < length < 128, hash up to 4 chunks of 32 bytes each from the end of s.
     var tail_done uint32
     for tail_done = 0; tail_done < length; {
         tail_done += 32
-        y = rotate64(x + y, 42) * k0 + v.higher64()
-        w.setLower64( w.lower64() + fetch64(s[length - tail_done + 16:]) )
-        x = x * k0 + w.lower64()
-        z += w.higher64() + fetch64(s[length - tail_done:])
-        w.setHigher64( w.higher64() + v.lower64() )
-        v = weakHashLen32WithSeeds_3(s[length - tail_done:], v.lower64() + z, v.higher64())
-        v.setLower64( v.lower64() * k0 )
+        y = rotate64(x + y, 42) * k0 + v.Higher64()
+        w.setLower64( w.Lower64() + fetch64(s[length - tail_done + 16:]) )
+        x = x * k0 + w.Lower64()
+        z += w.Higher64() + fetch64(s[length - tail_done:])
+        w.setHigher64( w.Higher64() + v.Lower64() )
+        v = weakHashLen32WithSeeds_3(s[length - tail_done:], v.Lower64() + z, v.Higher64())
+        v.setLower64( v.Lower64() * k0 )
     }
 
     // At this point our 56 bytes of state should contain more than
     // enough information for a strong 128-bit hash.  We use two
     // different 56-byte-to-8-byte hashes to get a 16-byte final result.
-    x = hashLen16(x, v.lower64())
-    y = hashLen16(y + z, w.lower64())
+    x = hashLen16(x, v.Lower64())
+    y = hashLen16(y + z, w.Lower64())
 
-    return uint128{hashLen16(x + v.higher64(), w.higher64()) + y,
-        hashLen16(x + w.higher64(), y + v.higher64())}
+    return Uint128{hashLen16(x + v.Higher64(), w.Higher64()) + y,
+        hashLen16(x + w.Higher64(), y + v.Higher64())}
 }
 
-func CityHash128(s []byte, length uint32) (result uint128) {
+func CityHash128(s []byte, length uint32) (result Uint128) {
     if length >= 16 {
-        result = CityHash128WithSeed(s[16:], length - 16, uint128{fetch64(s), fetch64(s[8:]) + k0})
+        result = CityHash128WithSeed(s[16:], length - 16, Uint128{fetch64(s), fetch64(s[8:]) + k0})
     } else {
-        result = CityHash128WithSeed(s, length, uint128{k0, k1})
+        result = CityHash128WithSeed(s, length, Uint128{k0, k1})
     }
 
     return
