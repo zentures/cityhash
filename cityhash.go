@@ -17,7 +17,7 @@ import (
     "unsafe"
 )
 
-func isLittleEndian() bool {
+func IsLittleEndian() bool {
     var i int32 = 0x01020304
     u := unsafe.Pointer(&i)
     pb := (*byte)(u)
@@ -28,7 +28,7 @@ func isLittleEndian() bool {
 func unalignedLoad64(p []byte) (result uint64, err error) {
     buf := bytes.NewBuffer(p)
 
-    if (isLittleEndian()) {
+    if (IsLittleEndian()) {
         err = binary.Read(buf, binary.LittleEndian, &result)
     } else {
         err = binary.Read(buf, binary.BigEndian, &result)
@@ -39,7 +39,7 @@ func unalignedLoad64(p []byte) (result uint64, err error) {
 
 func unalignedLoad32(p []byte) (result uint32, err error) {
     buf := bytes.NewBuffer(p)
-    if (isLittleEndian()) {
+    if (IsLittleEndian()) {
         err = binary.Read(buf, binary.LittleEndian, &result)
     } else {
         err = binary.Read(buf, binary.BigEndian, &result)
@@ -69,7 +69,7 @@ func bswap32(x uint32) uint32 {
 }
 
 func uint32InExpectedOrder(x uint32) uint32 {
-    if !isLittleEndian() {
+    if !IsLittleEndian() {
         return bswap32(x)
     }
 
@@ -77,7 +77,7 @@ func uint32InExpectedOrder(x uint32) uint32 {
 }
 
 func uint64InExpectedOrder(x uint64) uint64 {
-    if !isLittleEndian() {
+    if !IsLittleEndian() {
         return bswap64(x)
     }
 
@@ -483,7 +483,7 @@ func CityHash128WithSeed(s []byte, length uint32, seed Uint128) Uint128 {
         return cityMurmur(s, length, seed)
     }
 
-    var orig_length = length
+    orig_length := length
     var t []byte = s
 
     // We expect length >= 128 to be the common case.  Keep 56 bytes of state:
