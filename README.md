@@ -1,4 +1,4 @@
-cityhash.go
+Go cityhash
 ===========
 
-Google's City Hash re-implemented in Go
+Go implementation of Google City Hash
