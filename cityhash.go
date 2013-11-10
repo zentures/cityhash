@@ -13,7 +13,6 @@ package cityhash
 
 import (
     "encoding/binary"
-    "bytes"
     "unsafe"
 )
 
@@ -25,27 +24,24 @@ func IsLittleEndian() bool {
     return (b == 0x04)
 }
 
-func unalignedLoad64(p []byte) (result uint64, err error) {
-    buf := bytes.NewBuffer(p)
-
+func unalignedLoad64(p []byte) (result uint64) {
     if (IsLittleEndian()) {
-        err = binary.Read(buf, binary.LittleEndian, &result)
+        result = binary.LittleEndian.Uint64(p)
     } else {
-        err = binary.Read(buf, binary.BigEndian, &result)
+        result = binary.BigEndian.Uint64(p)
     }
 
-    return
+    return result
 }
 
-func unalignedLoad32(p []byte) (result uint32, err error) {
-    buf := bytes.NewBuffer(p)
+func unalignedLoad32(p []byte) (result uint32) {
     if (IsLittleEndian()) {
-        err = binary.Read(buf, binary.LittleEndian, &result)
+        result = binary.LittleEndian.Uint32(p)
     } else {
-        err = binary.Read(buf, binary.BigEndian, &result)
+        result = binary.BigEndian.Uint32(p)
     }
 
-    return 
+    return result
 }
 
 func bswap64(x uint64) uint64 {
@@ -85,13 +81,11 @@ func uint64InExpectedOrder(x uint64) uint64 {
 }
 
 func fetch64(p []byte) uint64 {
-    tmp, _ := unalignedLoad64(p)
-    return uint64InExpectedOrder(tmp)
+    return uint64InExpectedOrder(unalignedLoad64(p))
 }
 
 func fetch32(p []byte) uint32 {
-    tmp, _ := unalignedLoad32(p)
-    return uint32InExpectedOrder(tmp)
+    return uint32InExpectedOrder(unalignedLoad32(p))
 }
 
 const (
