@@ -16,6 +16,18 @@ import (
     "unsafe"
 )
 
+var (
+    little bool
+)
+
+func init() {
+    if (IsLittleEndian()) {
+        little = true
+    } else {
+        little = false
+    }
+}
+
 func IsLittleEndian() bool {
     var i int32 = 0x01020304
     u := unsafe.Pointer(&i)
@@ -25,7 +37,7 @@ func IsLittleEndian() bool {
 }
 
 func unalignedLoad64(p []byte) (result uint64) {
-    if (IsLittleEndian()) {
+    if little {
         result = binary.LittleEndian.Uint64(p)
     } else {
         result = binary.BigEndian.Uint64(p)
@@ -35,7 +47,7 @@ func unalignedLoad64(p []byte) (result uint64) {
 }
 
 func unalignedLoad32(p []byte) (result uint32) {
-    if (IsLittleEndian()) {
+    if little {
         result = binary.LittleEndian.Uint32(p)
     } else {
         result = binary.BigEndian.Uint32(p)
@@ -65,7 +77,7 @@ func bswap32(x uint32) uint32 {
 }
 
 func uint32InExpectedOrder(x uint32) uint32 {
-    if !IsLittleEndian() {
+    if !little {
         return bswap32(x)
     }
 
@@ -73,7 +85,7 @@ func uint32InExpectedOrder(x uint32) uint32 {
 }
 
 func uint64InExpectedOrder(x uint64) uint64 {
-    if !IsLittleEndian() {
+    if !little {
         return bswap64(x)
     }
 
