@@ -174,10 +174,9 @@ func hash32Len13to24(s []byte, length uint32) uint32 {
 
 func hash32Len0to4(s []byte, length uint32) uint32 {
 	var b, c uint32 = 0, 9
-	var i uint32
 
-	for i = 0; i < length; i++ {
-		v := s[i]
+	tmp := s[:length]
+	for _, v := range tmp {
 		b = uint32(int64(b)*int64(c1) + int64(int8(v)))
 		c ^= b
 	}
