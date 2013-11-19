@@ -1,20 +1,20 @@
 package cityhash
 
 import (
-    "testing"
+	"testing"
 )
 
 const (
-    kSeed0 uint64 = 1234567
-    kSeed1 uint64 = k0
-    kDataSize int = 1 << 20
-    kTestSize int = 300
+	kSeed0    uint64 = 1234567
+	kSeed1    uint64 = k0
+	kDataSize int    = 1 << 20
+	kTestSize int    = 300
 )
 
 var (
-    kSeed128 Uint128 = Uint128{kSeed0, kSeed1}
-    data [kDataSize]byte
-    errors int = 0  // global error count
+	kSeed128 Uint128 = Uint128{kSeed0, kSeed1}
+	data     [kDataSize]byte
+	errors   int = 0 // global error count
 )
 
 var testdata = [kTestSize][]uint64{
@@ -922,47 +922,47 @@ var testdata = [kTestSize][]uint64{
 
 // Initialize data to pseudorandom values.
 func setup() {
-    var a uint64 = 9
-    var b uint64 = 777
-    for i := 0; i < kDataSize; i++ {
-        a += b
-        b += a
-        a = (a ^ (a >> 41)) * k0
-        b = (b ^ (b >> 41)) * k0 + uint64(i)
-        u := uint8(b >> 37)
-        data[i] = byte(u)
-    }
+	var a uint64 = 9
+	var b uint64 = 777
+	for i := 0; i < kDataSize; i++ {
+		a += b
+		b += a
+		a = (a ^ (a >> 41)) * k0
+		b = (b^(b>>41))*k0 + uint64(i)
+		u := uint8(b >> 37)
+		data[i] = byte(u)
+	}
 }
 
 func check(expected, actual uint64, t *testing.T) {
-    if (expected != actual) {
-        t.Errorf("ERROR: expected 0x%x but got 0x%x\n", expected, actual)
-        errors++
-    } 
+	if expected != actual {
+		t.Errorf("ERROR: expected 0x%x but got 0x%x\n", expected, actual)
+		errors++
+	}
 }
 
 func test(expected []uint64, offset int, length int, t *testing.T) {
-    var u Uint128 = CityHash128(data[offset:], uint32(length))
-    var v Uint128 = CityHash128WithSeed(data[offset:], uint32(length), kSeed128)
+	var u Uint128 = CityHash128(data[offset:], uint32(length))
+	var v Uint128 = CityHash128WithSeed(data[offset:], uint32(length), kSeed128)
 
-    check(expected[0], CityHash64(data[offset:], uint32(length)), t)
-    check(expected[15], uint64(CityHash32(data[offset:], uint32(length))), t)
-    check(expected[1], CityHash64WithSeed(data[offset:], uint32(length), kSeed0), t)
-    check(expected[2], CityHash64WithSeeds(data[offset:], uint32(length), kSeed0, kSeed1), t)
-    check(expected[3], u.Lower64(), t)
-    check(expected[4], u.Higher64(), t)
-    check(expected[5], v.Lower64(), t)
-    check(expected[6], v.Higher64(), t)
+	check(expected[0], CityHash64(data[offset:], uint32(length)), t)
+	check(expected[15], uint64(CityHash32(data[offset:], uint32(length))), t)
+	check(expected[1], CityHash64WithSeed(data[offset:], uint32(length), kSeed0), t)
+	check(expected[2], CityHash64WithSeeds(data[offset:], uint32(length), kSeed0, kSeed1), t)
+	check(expected[3], u.Lower64(), t)
+	check(expected[4], u.Higher64(), t)
+	check(expected[5], v.Lower64(), t)
+	check(expected[6], v.Higher64(), t)
 }
 
 func TestHash(t *testing.T) {
-    setup()
-    var i int
-    for i = 0; i < kTestSize - 1; i++ {
-        t.Logf("INFO: offset = %d, length = %d", i * i, i)
+	setup()
+	var i int
+	for i = 0; i < kTestSize-1; i++ {
+		t.Logf("INFO: offset = %d, length = %d", i*i, i)
 
-        test(testdata[i], i * i, i, t)
-    }
-    test(testdata[i], 0, kDataSize, t)
-    return 
+		test(testdata[i], i*i, i, t)
+	}
+	test(testdata[i], 0, kDataSize, t)
+	return
 }
