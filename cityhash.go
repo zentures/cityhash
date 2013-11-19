@@ -16,6 +16,7 @@ import (
 	"unsafe"
 )
 
+/*
 var (
 	little bool
 )
@@ -27,6 +28,7 @@ func init() {
 		little = false
 	}
 }
+*/
 
 func IsLittleEndian() bool {
 	var i int32 = 0x01020304
@@ -37,23 +39,29 @@ func IsLittleEndian() bool {
 }
 
 func unalignedLoad64(p []byte) (result uint64) {
-	if little {
-		result = binary.LittleEndian.Uint64(p)
-	} else {
-		result = binary.BigEndian.Uint64(p)
-	}
+	return binary.LittleEndian.Uint64(p)
+	/*
+		if little {
+			result = binary.LittleEndian.Uint64(p)
+		} else {
+			result = binary.BigEndian.Uint64(p)
+		}
 
-	return result
+		return result
+	*/
 }
 
 func unalignedLoad32(p []byte) (result uint32) {
-	if little {
-		result = binary.LittleEndian.Uint32(p)
-	} else {
-		result = binary.BigEndian.Uint32(p)
-	}
+	return binary.LittleEndian.Uint32(p)
+	/*
+		if little {
+			result = binary.LittleEndian.Uint32(p)
+		} else {
+			result = binary.BigEndian.Uint32(p)
+		}
 
-	return result
+		return result
+	*/
 }
 
 func bswap64(x uint64) uint64 {
@@ -77,27 +85,37 @@ func bswap32(x uint32) uint32 {
 }
 
 func uint32InExpectedOrder(x uint32) uint32 {
-	if !little {
-		return bswap32(x)
-	}
+	/*
+		if !little {
+			return bswap32(x)
+		}
+	*/
 
 	return x
 }
 
 func uint64InExpectedOrder(x uint64) uint64 {
-	if !little {
-		return bswap64(x)
-	}
+	/*
+		if !little {
+			return bswap64(x)
+		}
+	*/
 
 	return x
 }
 
+// If I understand the original code correctly, it's expecting to load either 8 or 4
+// byes in little endian order. so let's just simplify it a bit since we will do that
+// anyway..
+// https://code.google.com/p/cityhash/source/browse/trunk/src/city.cc#112
 func fetch64(p []byte) uint64 {
-	return uint64InExpectedOrder(unalignedLoad64(p))
+	return binary.LittleEndian.Uint64(p)
+	//return uint64InExpectedOrder(unalignedLoad64(p))
 }
 
 func fetch32(p []byte) uint32 {
-	return uint32InExpectedOrder(unalignedLoad32(p))
+	return binary.LittleEndian.Uint32(p)
+	//return uint32InExpectedOrder(unalignedLoad32(p))
 }
 
 const (
