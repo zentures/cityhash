@@ -318,7 +318,7 @@ func (this Uint128) Higher64() uint64 {
 func (this Uint128) Bytes() []byte {
 	b := make([]byte, 16)
 	binary.LittleEndian.PutUint64(b, this[0])
-	binary.LittleEndian.PutUint64(b[4:], this[1])
+	binary.LittleEndian.PutUint64(b[8:], this[1])
 	return b
 }
 
