@@ -315,6 +315,13 @@ func (this Uint128) Higher64() uint64 {
 	return this[1]
 }
 
+func (this Uint128) Bytes() []byte {
+	b := make([]byte, 16)
+	binary.LittleEndian.PutUint64(b, this[0])
+	binary.LittleEndian.PutUint64(b[4:], this[1])
+	return b
+}
+
 func hash128to64(x Uint128) uint64 {
 	// Murmur-inspired hashing.
 	const kMul uint64 = 0x9ddfea08eb382d69
